@@ -8,7 +8,7 @@ android {
         applicationId "com.sferadev.lolbird"
         minSdkVersion 16
         targetSdkVersion 21
-        versionCode 1
+        versionCode 10
         versionName "1.0"
     }
     buildTypes {
@@ -20,7 +20,6 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
     wearApp project(':wear')
     provided files('libs/LGQSlideAPIs.jar')
     compile 'com.android.support:appcompat-v7:21.0.3'

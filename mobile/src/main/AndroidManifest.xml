@@ -1,13 +1,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.sferadev.lolbird">
 
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.REORDER_TASKS" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
     <application android:allowBackup="true"
                  android:label="@string/app_name"
                  android:icon="@mipmap/ic_launcher"
                  android:theme="@style/AppTheme">
 
+        <uses-library android:name="com.lge.app.floating"
+                      android:required="false"/>
+
         <!-- Easter Egg Activity For non LG -->
-        <activity android:name="EggActivity"
+        <activity android:name="com.sferadev.lolbird.EggActivity"
                   android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"
                   android:configChanges="orientation|keyboardHidden"
                   android:exported="true"
@@ -22,7 +30,7 @@
         </activity>
 
         <!-- Easter Egg Activity For LG -->
-        <activity android:name="LGEggActivity"
+        <activity android:name="com.sferadev.lolbird.LGEggActivity"
                   android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"
                   android:configChanges="orientation|keyboardHidden"
                   android:exported="true"
@@ -38,11 +46,11 @@
 
         <!-- Easter Egg Alias to be found by QSlide -->
         <activity-alias
-            android:name=".egg.LGEggActivity"
+            android:name="LGEgg"
             android:enabled="true"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
-            android:targetActivity="LGEggActivity">
+            android:targetActivity="com.sferadev.lolbird.LGEggActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="com.lge.intent.category.QSLIDE" />
@@ -50,5 +58,9 @@
             <meta-data android:value="false" android:name="cleartask"/>
             <meta-data android:value="2.5" android:name="min version"/>
         </activity-alias>
+
+        <!-- Service for QSlide -->
+        <service android:name="com.lge.app.floating.FloatingWindowService">
+        </service>
     </application>
 </manifest>

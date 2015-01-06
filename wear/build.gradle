@@ -8,7 +8,7 @@ android {
         applicationId "com.sferadev.lolbird"
         minSdkVersion 21
         targetSdkVersion 21
-        versionCode 1
+        versionCode 10
         versionName "1.0"
     }
     buildTypes {
