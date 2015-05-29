@@ -5,24 +5,36 @@
     <uses-permission android:name="android.permission.REORDER_TASKS" />
     <uses-permission android:name="android.permission.GET_TASKS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name= "com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY"/>
 
-    <application android:allowBackup="true"
-                 android:label="@string/app_name"
-                 android:icon="@mipmap/ic_launcher"
-                 android:theme="@style/AppTheme">
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:theme="@style/AppTheme">
 
-        <uses-library android:name="com.lge.app.floating"
-                      android:required="false"/>
+        <uses-library
+            android:name="com.lge.app.floating"
+            android:required="false"/>
+
+        <meta-data
+            android:name="com.samsung.android.sdk.multiwindow.enable"
+            android:value="true" />
+
+        <meta-data
+            android:name="com.samsung.android.sdk.multiwindow.multiinstance.enable"
+            android:value="true" />
 
         <!-- Easter Egg Activity For non LG -->
-        <activity android:name="com.sferadev.lolbird.EggActivity"
-                  android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"
-                  android:configChanges="orientation|keyboardHidden"
-                  android:exported="true"
-                  android:hardwareAccelerated="true"
-                  android:launchMode="singleInstance"
-                  android:screenOrientation="locked"
-                  android:excludeFromRecents="true">
+        <activity
+            android:name="com.sferadev.lolbird.EggActivity"
+            android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"
+            android:configChanges="orientation|keyboardHidden"
+            android:exported="true"
+            android:hardwareAccelerated="true"
+            android:launchMode="singleInstance"
+            android:screenOrientation="locked"
+            android:excludeFromRecents="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -30,14 +42,15 @@
         </activity>
 
         <!-- Easter Egg Activity For LG -->
-        <activity android:name="com.sferadev.lolbird.LGEggActivity"
-                  android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"
-                  android:configChanges="orientation|keyboardHidden"
-                  android:exported="true"
-                  android:hardwareAccelerated="true"
-                  android:launchMode="singleInstance"
-                  android:screenOrientation="locked"
-                  android:excludeFromRecents="true">
+        <activity
+            android:name="com.sferadev.lolbird.LGEggActivity"
+            android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"
+            android:configChanges="orientation|keyboardHidden"
+            android:exported="true"
+            android:hardwareAccelerated="true"
+            android:launchMode="singleInstance"
+            android:screenOrientation="locked"
+            android:excludeFromRecents="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.DEFAULT" />
@@ -60,7 +73,7 @@
         </activity-alias>
 
         <!-- Service for QSlide -->
-        <service android:name="com.lge.app.floating.FloatingWindowService">
-        </service>
+        <service
+            android:name="com.lge.app.floating.FloatingWindowService" />
     </application>
 </manifest>

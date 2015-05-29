@@ -35,8 +35,8 @@ import static com.sferadev.lolbird.Utils.isBuildHigherThanVersion;
 public class Egg extends FrameLayout {
     public static final String TAG = "LolBird";
 
-    public static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
-    public static final boolean DEBUG_DRAW = false && DEBUG;
+    public static final boolean DEBUG = false;
+    public static final boolean DEBUG_DRAW = false;
 
     public static final void L(String s, Object... objects) {
         if (DEBUG) {
@@ -502,6 +502,7 @@ public class Egg extends FrameLayout {
 
     private void poke() {
         L("poke");
+        mDroid.setVisibility(View.VISIBLE);
         if (mFrozen) return;
         if (!mAnimating) {
             reset();

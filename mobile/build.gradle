@@ -24,4 +24,6 @@ dependencies {
     provided files('libs/LGQSlideAPIs.jar')
     compile 'com.android.support:appcompat-v7:21.0.3'
     compile 'com.google.android.gms:play-services:6.5.87'
+    compile files('libs/multiwindow-v1.2.3.jar')
+    compile files('libs/sdk-v1.0.0.jar')
 }
