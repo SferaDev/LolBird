@@ -28,6 +28,7 @@ public class EggActivity extends Activity {
             mMultiWindowActivity = new SMultiWindowActivity(this);
         } catch (Exception e) {
             e.printStackTrace();
+            // no-op
         }
     }
 

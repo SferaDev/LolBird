@@ -17,6 +17,7 @@ import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.os.Build.VERSION_CODES;
 import android.os.Vibrator;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -53,13 +54,13 @@ public class Egg extends FrameLayout {
     private final float[] hsv = {0, 0, 0};
     private final AudioAttributes mAudioAttrs = new AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_GAME).build();
-    private TimeAnimator mAnim;
     private final Vibrator mVibrator;
     private final AudioManager mAudioManager;
+    private final ArrayList<Obstacle> mObstaclesInPlay = new ArrayList<>();
+    private TimeAnimator mAnim;
     private TextView mScoreField;
     private View mSplash;
     private Player mDroid;
-    private final ArrayList<Obstacle> mObstaclesInPlay = new ArrayList<>();
     private float t, dt;
     private int mScore;
     private float mLastPipeTime; // in sec
@@ -215,13 +216,7 @@ public class Egg extends FrameLayout {
             s.h = irand(PARAMS.BUILDING_HEIGHT_MIN, mh);
 
             final LayoutParams lp = new LayoutParams(s.w, s.h);
-            if (s instanceof Building) {
-                lp.gravity = Gravity.BOTTOM;
-            } else {
-                lp.gravity = Gravity.TOP;
-                final float r = frand();
-                lp.topMargin = (int) (1 - r * r * mHeight / 2) + mHeight / 2;
-            }
+            lp.gravity = Gravity.BOTTOM;
 
             addView(s, lp);
             s.setTranslationX(frand(-lp.width, mWidth + lp.width));
@@ -342,7 +337,7 @@ public class Egg extends FrameLayout {
                 thump();
                 stop();
             } else if (ob.cleared(mDroid)) {
-                if (ob instanceof Obstacle) passedBarrier = true;
+                passedBarrier = true;
                 mObstaclesInPlay.remove(j);
             }
         }
@@ -385,7 +380,8 @@ public class Egg extends FrameLayout {
                     Gravity.TOP | Gravity.LEFT));
             s1.setTranslationX(mWidth + inset);
             s1.setTranslationY(-s1.h - yinset);
-            s1.setTranslationZ(PARAMS.OBSTACLE_Z * 0.75f);
+            if (isBuildHigherThanVersion(VERSION_CODES.LOLLIPOP))
+                s1.setTranslationZ(PARAMS.OBSTACLE_Z * 0.75f);
             s1.animate()
                     .translationY(0)
                     .setStartDelay(d1)
@@ -398,8 +394,9 @@ public class Egg extends FrameLayout {
                     PARAMS.OBSTACLE_WIDTH,
                     Gravity.TOP | Gravity.LEFT));
             p1.setTranslationX(mWidth);
-            p1.setTranslationY(-PARAMS.OBSTACLE_WIDTH);
-            p1.setTranslationZ(PARAMS.OBSTACLE_Z);
+            p1.setTranslationY(-mHeight);
+            if (isBuildHigherThanVersion(VERSION_CODES.LOLLIPOP))
+                p1.setTranslationZ(PARAMS.OBSTACLE_Z);
             p1.setScaleX(0.25f);
             p1.setScaleY(0.25f);
             p1.animate()
@@ -419,7 +416,8 @@ public class Egg extends FrameLayout {
                     Gravity.TOP | Gravity.LEFT));
             s2.setTranslationX(mWidth + inset);
             s2.setTranslationY(mHeight + yinset);
-            s2.setTranslationZ(PARAMS.OBSTACLE_Z * 0.75f);
+            if (isBuildHigherThanVersion(VERSION_CODES.LOLLIPOP))
+                s2.setTranslationZ(PARAMS.OBSTACLE_Z * 0.75f);
             s2.animate()
                     .translationY(mHeight - s2.h)
                     .setStartDelay(d2)
@@ -433,7 +431,8 @@ public class Egg extends FrameLayout {
                     Gravity.TOP | Gravity.LEFT));
             p2.setTranslationX(mWidth);
             p2.setTranslationY(mHeight);
-            p2.setTranslationZ(PARAMS.OBSTACLE_Z);
+            if (isBuildHigherThanVersion(VERSION_CODES.LOLLIPOP))
+                p2.setTranslationZ(PARAMS.OBSTACLE_Z);
             p2.setScaleX(0.25f);
             p2.setScaleY(0.25f);
             p2.animate()
@@ -449,7 +448,7 @@ public class Egg extends FrameLayout {
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent ev) {
+    public boolean onTouchEvent(@NonNull MotionEvent ev) {
         L("touch: %s", ev);
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
@@ -477,7 +476,7 @@ public class Egg extends FrameLayout {
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent ev) {
+    public boolean onKeyDown(int keyCode, @NonNull KeyEvent ev) {
         L("keyDown: %d", keyCode);
         switch (keyCode) {
             case KeyEvent.KEYCODE_DPAD_CENTER:
@@ -594,7 +593,6 @@ public class Egg extends FrameLayout {
         public final int OBSTACLE_WIDTH;
         public final int OBSTACLE_STEM_WIDTH;
         public final int OBSTACLE_GAP;
-        public int OBSTACLE_MIN;
         public final int BUILDING_WIDTH_MIN;
         public final int BUILDING_WIDTH_MAX;
         public final int BUILDING_HEIGHT_MIN;
@@ -605,6 +603,7 @@ public class Egg extends FrameLayout {
         public final float PLAYER_Z;
         public final float PLAYER_Z_BOOST;
         public final float HUD_Z;
+        public int OBSTACLE_MIN;
 
         public Params(Resources res) {
             TRANSLATION_PER_SEC = res.getDimension(R.dimen.translation_per_sec);
@@ -748,10 +747,12 @@ public class Egg extends FrameLayout {
         public final Rect hitRect = new Rect();
         public final float h;
 
+        final Random rnd = new Random();
+        final int backgroundColor = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+
         public Obstacle(Context context, float h) {
             super(context);
-            Random rnd = new Random();
-            setBackgroundColor(Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256)));
+            setBackgroundColor(backgroundColor);
             this.h = h;
         }
 
