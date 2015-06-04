@@ -35,4 +35,10 @@ public class EggActivity extends Activity {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void onPause() {
+        world.stop();
+        super.onPause();
+    }
 }
