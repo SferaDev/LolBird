@@ -560,7 +560,7 @@ public class Egg extends FrameLayout {
     static final Rect sTmpRect = new Rect();
 
     private interface GameView {
-        public void step(long t_ms, long dt_ms, float t, float dt);
+        void step(long t_ms, long dt_ms, float t, float dt);
     }
 
     private class Player extends ImageView implements GameView {
