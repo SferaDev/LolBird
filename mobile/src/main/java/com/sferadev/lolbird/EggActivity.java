@@ -1,22 +1,17 @@
 package com.sferadev.lolbird;
 
 import android.app.Activity;
-import android.content.ComponentName;
-import android.content.Intent;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
-import com.samsung.android.sdk.SsdkUnsupportedException;
 import com.samsung.android.sdk.multiwindow.SMultiWindow;
 import com.samsung.android.sdk.multiwindow.SMultiWindowActivity;
 
 public class EggActivity extends Activity {
+    Egg world;
     private SMultiWindow mMultiWindow = null;
     private SMultiWindowActivity mMultiWindowActivity = null;
-
-    Egg world;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

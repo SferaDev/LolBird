@@ -36,100 +36,37 @@ import static com.sferadev.lolbird.Utils.isBuildHigherThanVersion;
 
 @SuppressLint("NewApi")
 public class Egg extends FrameLayout {
-    public static final String TAG = "LolBird";
+    private static final String TAG = "LolBird";
 
-    public static final boolean DEBUG = false;
-    public static final boolean DEBUG_DRAW = false;
-
-    public static void L(String s, Object... objects) {
-        if (DEBUG) {
-            Log.d(TAG, objects.length == 0 ? s : String.format(s, objects));
-        }
-    }
-
-    public static final boolean AUTOSTART = true;
-
-    public static final float DEBUG_SPEED_MULTIPLIER = 1f; // 0.1f;
-    public static final boolean DEBUG_IDDQD = Log.isLoggable(TAG + ".iddqd", Log.DEBUG);
-
-    private static class Params {
-        public float TRANSLATION_PER_SEC;
-        public int OBSTACLE_SPACING, OBSTACLE_PERIOD;
-        public int BOOST_DV;
-        public int PLAYER_HIT_SIZE;
-        public int PLAYER_SIZE;
-        public int OBSTACLE_WIDTH, OBSTACLE_STEM_WIDTH;
-        public int OBSTACLE_GAP;
-        public int OBSTACLE_MIN;
-        public int BUILDING_WIDTH_MIN, BUILDING_WIDTH_MAX;
-        public int BUILDING_HEIGHT_MIN;
-        public int G;
-        public int MAX_V;
-        public float SCENERY_Z, OBSTACLE_Z, PLAYER_Z, PLAYER_Z_BOOST, HUD_Z;
-
-        public Params(Resources res) {
-            TRANSLATION_PER_SEC = res.getDimension(R.dimen.translation_per_sec);
-            OBSTACLE_SPACING = res.getDimensionPixelSize(R.dimen.obstacle_spacing);
-            OBSTACLE_PERIOD = (int) (OBSTACLE_SPACING / TRANSLATION_PER_SEC);
-            BOOST_DV = res.getDimensionPixelSize(R.dimen.boost_dv);
-            PLAYER_HIT_SIZE = res.getDimensionPixelSize(R.dimen.player_hit_size);
-            PLAYER_SIZE = res.getDimensionPixelSize(R.dimen.player_size);
-            OBSTACLE_WIDTH = res.getDimensionPixelSize(R.dimen.obstacle_width);
-            OBSTACLE_STEM_WIDTH = res.getDimensionPixelSize(R.dimen.obstacle_stem_width);
-            OBSTACLE_GAP = res.getDimensionPixelSize(R.dimen.obstacle_gap);
-            OBSTACLE_MIN = res.getDimensionPixelSize(R.dimen.obstacle_height_min);
-            BUILDING_HEIGHT_MIN = res.getDimensionPixelSize(R.dimen.building_height_min);
-            BUILDING_WIDTH_MIN = res.getDimensionPixelSize(R.dimen.building_width_min);
-            BUILDING_WIDTH_MAX = res.getDimensionPixelSize(R.dimen.building_width_max);
-
-            G = res.getDimensionPixelSize(R.dimen.G);
-            MAX_V = res.getDimensionPixelSize(R.dimen.max_v);
-
-            SCENERY_Z = res.getDimensionPixelSize(R.dimen.scenery_z);
-            OBSTACLE_Z = res.getDimensionPixelSize(R.dimen.obstacle_z);
-            PLAYER_Z = res.getDimensionPixelSize(R.dimen.player_z);
-            PLAYER_Z_BOOST = res.getDimensionPixelSize(R.dimen.player_z_boost);
-            HUD_Z = res.getDimensionPixelSize(R.dimen.hud_z);
-
-            // Sanity checking
-            if (OBSTACLE_MIN <= OBSTACLE_WIDTH / 2) {
-                Log.e(TAG, "error: obstacles might be too short, adjusting");
-                OBSTACLE_MIN = OBSTACLE_WIDTH / 2 + 1;
-            }
-        }
-    }
-
-    private TimeAnimator mAnim;
-    private Vibrator mVibrator;
-    private AudioManager mAudioManager;
-    private final AudioAttributes mAudioAttrs = new AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_GAME).build();
-
-    private TextView mScoreField;
-    private View mSplash;
-
-    private Player mDroid;
-    private ArrayList<Obstacle> mObstaclesInPlay = new ArrayList<Obstacle>();
-
-    private float t, dt;
-
-    private int mScore;
-    private float mLastPipeTime; // in sec
-    private int mWidth, mHeight;
-    private boolean mAnimating, mPlaying;
-    private boolean mFrozen; // after death, a short backoff
-    private boolean mFlipped;
-
-    private int mTimeOfDay;
-    private static final int DAY = 0, NIGHT = 1, TWILIGHT = 2, SUNSET = 3;
+    private static final boolean DEBUG = false;
+    private static final boolean DEBUG_DRAW = false;
+    private static final boolean AUTOSTART = true;
+    private static final float DEBUG_SPEED_MULTIPLIER = 1f; // 0.1f;
+    private static final boolean DEBUG_IDDQD = Log.isLoggable(TAG + ".iddqd", Log.DEBUG);
     private static final int[][] SKIES = {
             {0xFFc0c0FF, 0xFFa0a0FF}, // DAY
             {0xFF000010, 0xFF000000}, // NIGHT
             {0xFF000040, 0xFF000010}, // TWILIGHT
             {0xFFa08020, 0xFF204080}, // SUNSET
     };
-
     private static Params PARAMS;
+    private final float[] hsv = {0, 0, 0};
+    private final AudioAttributes mAudioAttrs = new AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_GAME).build();
+    private TimeAnimator mAnim;
+    private final Vibrator mVibrator;
+    private final AudioManager mAudioManager;
+    private TextView mScoreField;
+    private View mSplash;
+    private Player mDroid;
+    private final ArrayList<Obstacle> mObstaclesInPlay = new ArrayList<>();
+    private float t, dt;
+    private int mScore;
+    private float mLastPipeTime; // in sec
+    private int mWidth, mHeight;
+    private boolean mAnimating, mPlaying;
+    private boolean mFrozen; // after death, a short backoff
+    private int mTimeOfDay;
 
     public Egg(Context context) {
         this(context, null);
@@ -150,9 +87,39 @@ public class Egg extends FrameLayout {
         setLayoutDirection(LAYOUT_DIRECTION_LTR);
     }
 
+    private static void L(String s, Object... objects) {
+        if (DEBUG) {
+            Log.d(TAG, objects.length == 0 ? s : String.format(s, objects));
+        }
+    }
+
+    private static float lerp(float x, float a, float b) {
+        return (b - a) * x + a;
+    }
+
+    private static float rlerp(float v, float a, float b) {
+        return (v - a) / (b - a);
+    }
+
+    private static float clamp(float f) {
+        return f < 0f ? 0f : f > 1f ? 1f : f;
+    }
+
+    private static float frand() {
+        return (float) Math.random();
+    }
+
+    private static float frand(float a, float b) {
+        return lerp(frand(), a, b);
+    }
+
+    private static int irand(int a, int b) {
+        return (int) lerp(frand(), (float) a, (float) b);
+    }
+
     @Override
     public boolean willNotDraw() {
-        return !DEBUG;
+        return true;
     }
 
     public int getGameWidth() {
@@ -163,7 +130,7 @@ public class Egg extends FrameLayout {
         return mHeight;
     }
 
-    public float getGameTime() {
+    private float getGameTime() {
         return t;
     }
 
@@ -195,8 +162,6 @@ public class Egg extends FrameLayout {
         }
     }
 
-    final float hsv[] = {0, 0, 0};
-
     private void thump() {
         if (mAudioManager.getRingerMode() == AudioManager.RINGER_MODE_SILENT) {
             // No interruptions. Not even game haptics.
@@ -214,7 +179,7 @@ public class Egg extends FrameLayout {
         sky.setDither(true);
         setBackground(sky);
 
-        mFlipped = frand() > 0.5f;
+        boolean mFlipped = frand() > 0.5f;
         setScaleX(mFlipped ? -1 : 1);
 
         setScore(0);
@@ -233,10 +198,8 @@ public class Egg extends FrameLayout {
         mHeight = getHeight();
 
         final int mh = mHeight / 6;
-        final boolean cloudless = frand() < 0.25;
         final int N = 20;
         for (i = 0; i < N; i++) {
-            final float r1 = frand();
             final Scenery s;
             s = new Building(getContext());
 
@@ -247,6 +210,7 @@ public class Egg extends FrameLayout {
             hsv[0] = 175;
             hsv[1] = 0.25f;
             hsv[2] = 1 * s.z;
+            //noinspection ResourceType
             s.setBackgroundColor(Color.HSVToColor(hsv));
             s.h = irand(PARAMS.BUILDING_HEIGHT_MIN, mh);
 
@@ -338,30 +302,6 @@ public class Egg extends FrameLayout {
         }
     }
 
-    public static final float lerp(float x, float a, float b) {
-        return (b - a) * x + a;
-    }
-
-    public static final float rlerp(float v, float a, float b) {
-        return (v - a) / (b - a);
-    }
-
-    public static final float clamp(float f) {
-        return f < 0f ? 0f : f > 1f ? 1f : f;
-    }
-
-    public static final float frand() {
-        return (float) Math.random();
-    }
-
-    public static final float frand(float a, float b) {
-        return lerp(frand(), a, b);
-    }
-
-    public static final int irand(int a, int b) {
-        return (int) lerp(frand(), (float) a, (float) b);
-    }
-
     private void step(long t_ms, long dt_ms) {
         t = t_ms / 1000f; // seconds
         dt = dt_ms / 1000f;
@@ -431,21 +371,21 @@ public class Egg extends FrameLayout {
         if (mPlaying && (t - mLastPipeTime) > PARAMS.OBSTACLE_PERIOD) {
             mLastPipeTime = t;
             final int obstacley =
-                    (int)(frand() * (mHeight - 2*PARAMS.OBSTACLE_MIN - PARAMS.OBSTACLE_GAP)) +
+                    (int) (frand() * (mHeight - 2 * PARAMS.OBSTACLE_MIN - PARAMS.OBSTACLE_GAP)) +
                             PARAMS.OBSTACLE_MIN;
 
             final int inset = (PARAMS.OBSTACLE_WIDTH - PARAMS.OBSTACLE_STEM_WIDTH) / 2;
-            final int yinset = PARAMS.OBSTACLE_WIDTH/2;
+            final int yinset = PARAMS.OBSTACLE_WIDTH / 2;
 
-            final int d1 = irand(0,250);
+            final int d1 = irand(0, 250);
             final Obstacle s1 = new Obstacle(getContext(), obstacley - yinset);
             addView(s1, new LayoutParams(
                     PARAMS.OBSTACLE_STEM_WIDTH,
                     (int) s1.h,
-                    Gravity.TOP|Gravity.LEFT));
-            s1.setTranslationX(mWidth+inset);
-            s1.setTranslationY(-s1.h-yinset);
-            s1.setTranslationZ(PARAMS.OBSTACLE_Z*0.75f);
+                    Gravity.TOP | Gravity.LEFT));
+            s1.setTranslationX(mWidth + inset);
+            s1.setTranslationY(-s1.h - yinset);
+            s1.setTranslationZ(PARAMS.OBSTACLE_Z * 0.75f);
             s1.animate()
                     .translationY(0)
                     .setStartDelay(d1)
@@ -456,32 +396,32 @@ public class Egg extends FrameLayout {
             addView(p1, new LayoutParams(
                     PARAMS.OBSTACLE_WIDTH,
                     PARAMS.OBSTACLE_WIDTH,
-                    Gravity.TOP|Gravity.LEFT));
+                    Gravity.TOP | Gravity.LEFT));
             p1.setTranslationX(mWidth);
             p1.setTranslationY(-PARAMS.OBSTACLE_WIDTH);
             p1.setTranslationZ(PARAMS.OBSTACLE_Z);
             p1.setScaleX(0.25f);
             p1.setScaleY(0.25f);
             p1.animate()
-                    .translationY(s1.h-inset)
+                    .translationY(s1.h - inset)
                     .scaleX(1f)
                     .scaleY(1f)
                     .setStartDelay(d1)
                     .setDuration(250);
             mObstaclesInPlay.add(p1);
 
-            final int d2 = irand(0,250);
+            final int d2 = irand(0, 250);
             final Obstacle s2 = new Obstacle(getContext(),
                     mHeight - obstacley - PARAMS.OBSTACLE_GAP - yinset);
             addView(s2, new LayoutParams(
                     PARAMS.OBSTACLE_STEM_WIDTH,
                     (int) s2.h,
-                    Gravity.TOP|Gravity.LEFT));
-            s2.setTranslationX(mWidth+inset);
-            s2.setTranslationY(mHeight+yinset);
-            s2.setTranslationZ(PARAMS.OBSTACLE_Z*0.75f);
+                    Gravity.TOP | Gravity.LEFT));
+            s2.setTranslationX(mWidth + inset);
+            s2.setTranslationY(mHeight + yinset);
+            s2.setTranslationZ(PARAMS.OBSTACLE_Z * 0.75f);
             s2.animate()
-                    .translationY(mHeight-s2.h)
+                    .translationY(mHeight - s2.h)
                     .setStartDelay(d2)
                     .setDuration(400);
             mObstaclesInPlay.add(s2);
@@ -490,14 +430,14 @@ public class Egg extends FrameLayout {
             addView(p2, new LayoutParams(
                     PARAMS.OBSTACLE_WIDTH,
                     PARAMS.OBSTACLE_WIDTH,
-                    Gravity.TOP|Gravity.LEFT));
+                    Gravity.TOP | Gravity.LEFT));
             p2.setTranslationX(mWidth);
             p2.setTranslationY(mHeight);
             p2.setTranslationZ(PARAMS.OBSTACLE_Z);
             p2.setScaleX(0.25f);
             p2.setScaleY(0.25f);
             p2.animate()
-                    .translationY(mHeight-s2.h-yinset)
+                    .translationY(mHeight - s2.h - yinset)
                     .scaleX(1f)
                     .scaleY(1f)
                     .setStartDelay(d2)
@@ -640,18 +580,66 @@ public class Egg extends FrameLayout {
         c.drawText(sb.toString(), 20, 100, pt);
     }
 
-    static final Rect sTmpRect = new Rect();
-
     private interface GameView {
-        public void step(long t_ms, long dt_ms, float t, float dt);
+        void step(long t_ms, long dt_ms, float t, float dt);
+    }
+
+    private static class Params {
+        public final float TRANSLATION_PER_SEC;
+        public final int OBSTACLE_SPACING;
+        public final int OBSTACLE_PERIOD;
+        public final int BOOST_DV;
+        public final int PLAYER_HIT_SIZE;
+        public final int PLAYER_SIZE;
+        public final int OBSTACLE_WIDTH;
+        public final int OBSTACLE_STEM_WIDTH;
+        public final int OBSTACLE_GAP;
+        public int OBSTACLE_MIN;
+        public final int BUILDING_WIDTH_MIN;
+        public final int BUILDING_WIDTH_MAX;
+        public final int BUILDING_HEIGHT_MIN;
+        public final int G;
+        public final int MAX_V;
+        public final float SCENERY_Z;
+        public final float OBSTACLE_Z;
+        public final float PLAYER_Z;
+        public final float PLAYER_Z_BOOST;
+        public final float HUD_Z;
+
+        public Params(Resources res) {
+            TRANSLATION_PER_SEC = res.getDimension(R.dimen.translation_per_sec);
+            OBSTACLE_SPACING = res.getDimensionPixelSize(R.dimen.obstacle_spacing);
+            OBSTACLE_PERIOD = (int) (OBSTACLE_SPACING / TRANSLATION_PER_SEC);
+            BOOST_DV = res.getDimensionPixelSize(R.dimen.boost_dv);
+            PLAYER_HIT_SIZE = res.getDimensionPixelSize(R.dimen.player_hit_size);
+            PLAYER_SIZE = res.getDimensionPixelSize(R.dimen.player_size);
+            OBSTACLE_WIDTH = res.getDimensionPixelSize(R.dimen.obstacle_width);
+            OBSTACLE_STEM_WIDTH = res.getDimensionPixelSize(R.dimen.obstacle_stem_width);
+            OBSTACLE_GAP = res.getDimensionPixelSize(R.dimen.obstacle_gap);
+            OBSTACLE_MIN = res.getDimensionPixelSize(R.dimen.obstacle_height_min);
+            BUILDING_HEIGHT_MIN = res.getDimensionPixelSize(R.dimen.building_height_min);
+            BUILDING_WIDTH_MIN = res.getDimensionPixelSize(R.dimen.building_width_min);
+            BUILDING_WIDTH_MAX = res.getDimensionPixelSize(R.dimen.building_width_max);
+
+            G = res.getDimensionPixelSize(R.dimen.G);
+            MAX_V = res.getDimensionPixelSize(R.dimen.max_v);
+
+            SCENERY_Z = res.getDimensionPixelSize(R.dimen.scenery_z);
+            OBSTACLE_Z = res.getDimensionPixelSize(R.dimen.obstacle_z);
+            PLAYER_Z = res.getDimensionPixelSize(R.dimen.player_z);
+            PLAYER_Z_BOOST = res.getDimensionPixelSize(R.dimen.player_z_boost);
+            HUD_Z = res.getDimensionPixelSize(R.dimen.hud_z);
+
+            // Sanity checking
+            if (OBSTACLE_MIN <= OBSTACLE_WIDTH / 2) {
+                Log.e(TAG, "error: obstacles might be too short, adjusting");
+                OBSTACLE_MIN = OBSTACLE_WIDTH / 2 + 1;
+            }
+        }
     }
 
     private class Player extends ImageView implements GameView {
-        public float dv;
-
-        private boolean mBoosting;
-
-        private final float[] sHull = new float[] {
+        private final float[] sHull = new float[]{
                 0.3f, 0f,    // left antenna
                 0.7f, 0f,    // right antenna
                 0.92f, 0.33f, // off the right shoulder of Orion
@@ -662,6 +650,8 @@ public class Egg extends FrameLayout {
                 0.08f, 0.33f, // cold shoulder
         };
         public final float[] corners = new float[sHull.length];
+        public float dv;
+        private boolean mBoosting;
 
         public Player(Context context) {
             super(context);
@@ -755,9 +745,8 @@ public class Egg extends FrameLayout {
     }
 
     private class Obstacle extends View implements GameView {
-        public float h;
-
         public final Rect hitRect = new Rect();
+        public final float h;
 
         public Obstacle(Context context, float h) {
             super(context);
