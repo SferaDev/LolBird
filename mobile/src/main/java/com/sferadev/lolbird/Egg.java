@@ -13,7 +13,6 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
-import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.os.Build.VERSION_CODES;
 import android.os.Vibrator;
@@ -42,8 +41,7 @@ public class Egg extends FrameLayout {
     private static final boolean DEBUG = false;
     private static final boolean DEBUG_DRAW = false;
     private static final boolean AUTOSTART = true;
-    private static final float DEBUG_SPEED_MULTIPLIER = 1f; // 0.1f;
-    private static final boolean DEBUG_IDDQD = Log.isLoggable(TAG + ".iddqd", Log.DEBUG);
+    private static final float DEBUG_SPEED_MULTIPLIER = 0.7f; // 0.1f;
     private static final int[][] SKIES = {
             {0xFFc0c0FF, 0xFFa0a0FF}, // DAY
             {0xFF000010, 0xFF000000}, // NIGHT
@@ -52,8 +50,6 @@ public class Egg extends FrameLayout {
     };
     private static Params PARAMS;
     private final float[] hsv = {0, 0, 0};
-    private final AudioAttributes mAudioAttrs = new AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_GAME).build();
     private final Vibrator mVibrator;
     private final AudioManager mAudioManager;
     private final ArrayList<Obstacle> mObstaclesInPlay = new ArrayList<>();
@@ -168,7 +164,7 @@ public class Egg extends FrameLayout {
             // No interruptions. Not even game haptics.
             return;
         }
-        mVibrator.vibrate(80, mAudioAttrs);
+        mVibrator.vibrate(80);
     }
 
     public void reset() {
@@ -238,7 +234,7 @@ public class Egg extends FrameLayout {
     private void setScore(int score) {
         mScore = score;
         if (mScoreField != null) {
-            mScoreField.setText(DEBUG_IDDQD ? "??" : String.valueOf(score));
+            mScoreField.setText(String.valueOf(score));
         }
     }
 
@@ -318,21 +314,16 @@ public class Egg extends FrameLayout {
 
         // 2. Check for altitude
         if (mPlaying && mDroid.below(mHeight)) {
-            if (DEBUG_IDDQD) {
-                poke();
-                unpoke();
-            } else {
-                L("player hit the floor");
-                thump();
-                stop();
-            }
+            L("player hit the floor");
+            thump();
+            stop();
         }
 
         // 3. Check for obstacles
         boolean passedBarrier = false;
         for (int j = mObstaclesInPlay.size(); j-- > 0; ) {
             final Obstacle ob = mObstaclesInPlay.get(j);
-            if (mPlaying && ob.intersects(mDroid) && !DEBUG_IDDQD) {
+            if (mPlaying && ob.intersects(mDroid)) {
                 L("player hit an obstacle");
                 thump();
                 stop();
@@ -565,7 +556,8 @@ public class Egg extends FrameLayout {
             if (v == mDroid) continue;
             if (!(v instanceof GameView)) continue;
             final Rect r = new Rect();
-            v.getHitRect(r);
+            if(isBuildHigherThanVersion(VERSION_CODES.KITKAT)) v.getHitRect(r);
+            else Utils.getHitRect(v, r);
             c.drawRect(r, pt);
         }
 
@@ -778,7 +770,11 @@ public class Egg extends FrameLayout {
         @Override
         public void step(long t_ms, long dt_ms, float t, float dt) {
             setTranslationX(getTranslationX() - PARAMS.TRANSLATION_PER_SEC * dt);
-            getHitRect(hitRect);
+            if(isBuildHigherThanVersion(VERSION_CODES.KITKAT)) {
+                getHitRect(hitRect);
+            } else {
+                Utils.getHitRect(this, hitRect);
+            }
         }
     }
 

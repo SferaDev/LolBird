@@ -6,10 +6,10 @@ android {
 
     defaultConfig {
         applicationId "com.sferadev.lolbird"
-        minSdkVersion 17
+        minSdkVersion 16
         targetSdkVersion 21
-        versionCode 12
-        versionName "1.2"
+        versionCode 21
+        versionName "2.1"
     }
     buildTypes {
         release {
@@ -22,7 +22,8 @@ android {
 dependencies {
     wearApp project(':wear')
     provided files('libs/LGQSlideAPIs.jar')
-    compile 'com.android.support:appcompat-v7:21.0.3'
+    compile 'com.android.support:appcompat-v7:22.2.0'
+    compile 'com.nineoldandroids:library:2.4.0'
     compile 'com.google.android.gms:play-services:6.5.87'
     compile files('libs/multiwindow-v1.2.3.jar')
     compile files('libs/sdk-v1.0.0.jar')
