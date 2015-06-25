@@ -328,7 +328,7 @@ public class Egg extends FrameLayout {
                 thump();
                 stop();
             } else if (ob.cleared(mDroid)) {
-                passedBarrier = true;
+                if (ob instanceof Stem) passedBarrier = true;
                 mObstaclesInPlay.remove(j);
             }
         }
@@ -364,7 +364,7 @@ public class Egg extends FrameLayout {
             final int yinset = PARAMS.OBSTACLE_WIDTH / 2;
 
             final int d1 = irand(0, 250);
-            final Obstacle s1 = new Obstacle(getContext(), obstacley - yinset);
+            final Obstacle s1 = new Stem(getContext(), obstacley - yinset);
             addView(s1, new LayoutParams(
                     PARAMS.OBSTACLE_STEM_WIDTH,
                     (int) s1.h,
@@ -399,7 +399,7 @@ public class Egg extends FrameLayout {
             mObstaclesInPlay.add(p1);
 
             final int d2 = irand(0, 250);
-            final Obstacle s2 = new Obstacle(getContext(),
+            final Obstacle s2 = new Stem(getContext(),
                     mHeight - obstacley - PARAMS.OBSTACLE_GAP - yinset);
             addView(s2, new LayoutParams(
                     PARAMS.OBSTACLE_STEM_WIDTH,
@@ -556,8 +556,7 @@ public class Egg extends FrameLayout {
             if (v == mDroid) continue;
             if (!(v instanceof GameView)) continue;
             final Rect r = new Rect();
-            if(isBuildHigherThanVersion(VERSION_CODES.KITKAT)) v.getHitRect(r);
-            else Utils.getHitRect(v, r);
+            Utils.getHitRect(v, r);
             c.drawRect(r, pt);
         }
 
@@ -770,11 +769,14 @@ public class Egg extends FrameLayout {
         @Override
         public void step(long t_ms, long dt_ms, float t, float dt) {
             setTranslationX(getTranslationX() - PARAMS.TRANSLATION_PER_SEC * dt);
-            if(isBuildHigherThanVersion(VERSION_CODES.KITKAT)) {
-                getHitRect(hitRect);
-            } else {
-                Utils.getHitRect(this, hitRect);
-            }
+            Utils.getHitRect(this, hitRect);
+        }
+    }
+
+    private class Stem extends Obstacle {
+
+        public Stem(Context context, float h) {
+            super(context, h);
         }
     }
 
