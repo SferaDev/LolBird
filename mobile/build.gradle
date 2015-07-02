@@ -8,8 +8,8 @@ android {
         applicationId "com.sferadev.lolbird"
         minSdkVersion 16
         targetSdkVersion 21
-        versionCode 21
-        versionName "2.1"
+        versionCode 25
+        versionName "2.5"
     }
     buildTypes {
         release {
@@ -24,7 +24,7 @@ dependencies {
     provided files('libs/LGQSlideAPIs.jar')
     compile 'com.android.support:appcompat-v7:22.2.0'
     compile 'com.nineoldandroids:library:2.4.0'
-    compile 'com.google.android.gms:play-services:6.5.87'
+    compile 'com.google.android.gms:play-services:7.5.0'
     compile files('libs/multiwindow-v1.2.3.jar')
     compile files('libs/sdk-v1.0.0.jar')
 }

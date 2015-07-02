@@ -13,7 +13,6 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
-import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.os.Build.VERSION_CODES;
 import android.os.Vibrator;
@@ -52,8 +51,6 @@ public class Egg extends FrameLayout {
     };
     private static Params PARAMS;
     private final float[] hsv = {0, 0, 0};
-    private final AudioAttributes mAudioAttrs = new AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_GAME).build();
     private final Vibrator mVibrator;
     private final AudioManager mAudioManager;
     private final ArrayList<Obstacle> mObstaclesInPlay = new ArrayList<>();
@@ -168,7 +165,7 @@ public class Egg extends FrameLayout {
             // No interruptions. Not even game haptics.
             return;
         }
-        mVibrator.vibrate(80, mAudioAttrs);
+        mVibrator.vibrate(80);
     }
 
     public void reset() {
@@ -337,7 +334,7 @@ public class Egg extends FrameLayout {
                 thump();
                 stop();
             } else if (ob.cleared(mDroid)) {
-                passedBarrier = true;
+                if (ob instanceof Stem) passedBarrier = true;
                 mObstaclesInPlay.remove(j);
             }
         }
@@ -373,7 +370,7 @@ public class Egg extends FrameLayout {
             final int yinset = PARAMS.OBSTACLE_WIDTH / 2;
 
             final int d1 = irand(0, 250);
-            final Obstacle s1 = new Obstacle(getContext(), obstacley - yinset);
+            final Obstacle s1 = new Stem(getContext(), obstacley - yinset);
             addView(s1, new LayoutParams(
                     PARAMS.OBSTACLE_STEM_WIDTH,
                     (int) s1.h,
@@ -408,7 +405,7 @@ public class Egg extends FrameLayout {
             mObstaclesInPlay.add(p1);
 
             final int d2 = irand(0, 250);
-            final Obstacle s2 = new Obstacle(getContext(),
+            final Obstacle s2 = new Stem(getContext(),
                     mHeight - obstacley - PARAMS.OBSTACLE_GAP - yinset);
             addView(s2, new LayoutParams(
                     PARAMS.OBSTACLE_STEM_WIDTH,
@@ -565,7 +562,7 @@ public class Egg extends FrameLayout {
             if (v == mDroid) continue;
             if (!(v instanceof GameView)) continue;
             final Rect r = new Rect();
-            v.getHitRect(r);
+            Utils.getHitRect(v, r);
             c.drawRect(r, pt);
         }
 
@@ -778,7 +775,14 @@ public class Egg extends FrameLayout {
         @Override
         public void step(long t_ms, long dt_ms, float t, float dt) {
             setTranslationX(getTranslationX() - PARAMS.TRANSLATION_PER_SEC * dt);
-            getHitRect(hitRect);
+            Utils.getHitRect(this, hitRect);
+        }
+    }
+
+    private class Stem extends Obstacle {
+
+        public Stem(Context context, float h) {
+            super(context, h);
         }
     }
 
